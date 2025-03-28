@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const hls = new Hls();
     hls.attachMedia(videoPlayer);
 
+    hls.on(Hls.Events.ERROR, (event, data) => {
+        console.error('HLS Error:', data);
+        channelList.innerHTML = `<div class="alert alert-danger m-3">Error cargando el stream: ${data.details}</div>`;
+    });
+
     hls.on(Hls.Events.MEDIA_ATTACHED, () => {
         console.log('HLS.js inicializado correctamente');
     });
@@ -20,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             channelList.innerHTML = '<div class="text-center p-3">Cargando lista de canales...</div>';
             // Usar el proxy de Vercel para evitar problemas de CORS
-            const proxyUrl = `/proxy/${encodeURIComponent(url)}`;
+            const proxyUrl = `http://localhost:3001/proxy?url=${encodeURIComponent(url)}`;
             const response = await fetch(proxyUrl);
             
             if (!response.ok) {
@@ -56,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function retryLoad() {
         console.log('Reintentando carga de lista...');
         loadM3UFromUrl(m3uUrl.value);
-        }
     }
 
     // Cargar lista automáticamente al iniciar
@@ -64,12 +68,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función para parsear el contenido M3U
     function parseM3U(content) {
-        const lines = content.split('\n');
+        const lines = content.split(/\r?\n/);
         const channels = [];
         let currentChannel = null;
 
         lines.forEach(line => {
-            line = line.trim();
+            line = line.trim().replace(/\r$/, '');
             if (line.startsWith('#EXTINF:')) {
                 const titleMatch = line.match(/,(.+)$/);
                 currentChannel = {
