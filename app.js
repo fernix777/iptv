@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadM3UFromUrl(url) {
         try {
             channelList.innerHTML = '<div class="text-center p-3">Cargando lista de canales...</div>';
-            // Usar un proxy CORS para evitar problemas de acceso
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+            // Usar el proxy de Vercel para evitar problemas de CORS
+            const proxyUrl = `/proxy/${encodeURIComponent(url)}`;
             const response = await fetch(proxyUrl);
             
             if (!response.ok) {
